@@ -11,6 +11,31 @@ import (
 
 type server struct{}
 
+func (s *server) DecomposePrimeNumber(
+	req *calculatorpb.PrimeNumberDecompositionRequest,
+	stream calculatorpb.CalculatorService_DecomposePrimeNumberServer,
+) error {
+	log.Printf("DecomposePrimeNumber function invoked with: %v", req)
+	number := int(req.GetPrimeNumberDecomposition().GetNumber())
+
+	k := 2
+
+	for number > 1 {
+		if number%k == 0 {
+			resp := &calculatorpb.PrimeNumberDecompositionResponse{
+				Response: int32(k),
+			}
+			stream.Send(resp)
+			log.Println(k)
+			number = number / k // divide N by k so that we have the rest of the number left.
+		} else { // if k evenly divides into N
+			k = k + 1
+		}
+	}
+
+	return nil
+}
+
 func (s *server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
 	log.Printf("Sum function invoked with: %v", req)
 
