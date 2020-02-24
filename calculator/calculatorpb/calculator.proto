@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package greet;
+option go_package = "calculatorpb";
+
+message Sum {
+    float first_number = 1; // Number 1 as it is the first tag here
+    float second_number = 2;
+}
+
+message SumRequest {
+    Sum sum = 1;
+}
+
+message SumResponse {
+    string result = 1;
+}
+
+service CalculatorService {
+    // Unary API
+    rpc Sum (SumRequest) returns (SumResponse) {
+    }; // brackets for future options
+}
