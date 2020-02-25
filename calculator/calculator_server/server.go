@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dominik-najberg/grpc-go-course/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 )
@@ -50,6 +51,26 @@ func (s *server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calcul
 	return res, nil
 }
 
+func (s *server) ComputeAverage(stream calculatorpb.CalculatorService_ComputeAverageServer) error {
+	log.Printf("ComputeAverage function invoked with stream request")
+
+	var numbers []int32
+
+	for {
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(&calculatorpb.ComputeAverageResponse{
+				Result: calculateAverage(numbers),
+			})
+		}
+		if err != nil {
+			log.Fatalf("error while receiving data from client: %v", err)
+		}
+		numbers = append(numbers, msg.GetNumber())
+		log.Println("number received: ", msg.GetNumber())
+	}
+}
+
 func main() {
 	log.Println("server running...")
 
@@ -64,4 +85,14 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func calculateAverage(args []int32) float64 {
+	var sum int32
+
+	for _, arg := range args {
+		sum += arg
+	}
+
+	return float64(sum) / float64(len(args))
 }

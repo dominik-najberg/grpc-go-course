@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package greet;
+package calculator;
 option go_package = "calculatorpb";
 
 message Sum {
@@ -28,6 +28,14 @@ message PrimeNumberDecompositionResponse {
     int32 response = 1;
 }
 
+message ComputeAverageRequest {
+    int32 number = 1;
+}
+
+message ComputeAverageResponse {
+    double result = 1;
+}
+
 service CalculatorService {
     // Unary API
     rpc Sum (SumRequest) returns (SumResponse) {
@@ -36,4 +44,8 @@ service CalculatorService {
     // Server Streaming API
     rpc DecomposePrimeNumber (PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {
     }; // brackets for future options
+
+    // Client Streaming API
+    rpc ComputeAverage (stream ComputeAverageRequest) returns (ComputeAverageResponse) {
+    };
 }
