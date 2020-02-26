@@ -5,12 +5,31 @@ import (
 	"fmt"
 	"github.com/dominik-najberg/grpc-go-course/calculator/calculatorpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"io"
 	"log"
+	"math"
 	"net"
 )
 
 type server struct{}
+
+func (s *server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	log.Printf("SquareRoot function invoked with: %v", req)
+
+	number := req.GetNumber()
+
+	if number < 0 {
+		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("input cannot be negative: %v", number))
+	}
+
+	resp := &calculatorpb.SquareRootResponse{
+		NumberRoot: math.Sqrt(float64(number)),
+	}
+
+	return resp, nil
+}
 
 func (s *server) DecomposePrimeNumber(
 	req *calculatorpb.PrimeNumberDecompositionRequest,
