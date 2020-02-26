@@ -22,7 +22,54 @@ func main() {
 
 	//doUnary(c)
 	//doServerStream(c)
-	doClientStream(c)
+	//doClientStream(c)
+	doBiDiStream(c)
+}
+
+func doBiDiStream(c calculatorpb.CalculatorServiceClient) {
+	numbers := []int32{1, 5, 3, 6, 2, 20}
+	breakChannel := make(chan bool)
+
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// sending data to server
+	go func() {
+		for _, number := range numbers {
+			err := stream.Send(&calculatorpb.FindMaximumRequest{
+				Number: number,
+			})
+			if err != nil {
+				breakChannel <- true
+				log.Fatal(err)
+			}
+		}
+		err := stream.CloseSend()
+		if err != nil {
+			breakChannel <- true
+			log.Fatal(err)
+		}
+	}()
+
+	// receiving data from server
+	go func() {
+		for {
+			msg, err := stream.Recv()
+			if err == io.EOF {
+				breakChannel <- true
+				break
+			}
+			if err != nil {
+				breakChannel <- true
+				log.Fatal(err)
+			}
+			log.Println("the maximum value is: ", msg.GetNumber())
+		}
+	}()
+
+	<-breakChannel
 }
 
 func doServerStream(c calculatorpb.CalculatorServiceClient) {
